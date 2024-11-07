@@ -11,15 +11,15 @@ import (
 )
 
 func maxIdleTime() float64 {
-	val, exists := os.LookupEnv("FOO_USER")
+	val, exists := os.LookupEnv("SERVER_IDLE_TIME")
 	if !exists {
-		log.Println("FOO_USER doesn't exist, using default of 10s")
-		return 10
+		log.Println("SERVER_IDLE_TIME doesn't exist, using default of 3600s")
+		return 3600
 	} else {
 		idleTime, err := strconv.ParseFloat(val, 64)
 
 		if err != nil {
-			log.Fatalln("FOO_USER must be a number e.g. 3600")
+			log.Fatalln("SERVER_IDLE_TIME must be a number e.g. 3600")
 		}
 
 		return idleTime
@@ -78,13 +78,13 @@ func idleCount(maxIdleTime float64, in <-chan bool) {
 		state := <-in //State of idleTimer
 
 		if state {
-			log.Printf("Starting %s idle count", time.Duration(maxIdleTime*float64(time.Second)))
+			log.Printf("Starting %s idle timer", time.Duration(maxIdleTime*float64(time.Second)))
 			idleTimer := time.AfterFunc(time.Duration(maxIdleTime)*time.Second, shutdown)
 
 			for {
 				state := <-in
 				if !state {
-					log.Println("Idle count stopped")
+					log.Println("User logged in, idle timer stopped")
 					idleTimer.Stop()
 					break
 				}
@@ -95,24 +95,18 @@ func idleCount(maxIdleTime float64, in <-chan bool) {
 }
 
 func shutdown() {
-	log.Println("We're going to shutdown now")
-	os.Exit(0)
+	log.Println("Server Shutdown will now shutdown the server")
+	cmd := "shutdown -h 1 \"Server Shutdown service will now shutdown the server\""
+	_, err := exec.Command("bash", "-c", cmd).Output()
+
+	if err != nil {
+		fmt.Printf("%s", err)
+	}
 }
 
 func main() {
-	// log to custom file
-	LOG_FILE := "/tmp/cost_saver.log"
-	// open log file
-	logFile, err := os.OpenFile(LOG_FILE, os.O_APPEND|os.O_RDWR|os.O_CREATE, 0644)
-	if err != nil {
-		log.Panic(err)
-	}
-	defer logFile.Close()
+	log.Println("Server Shutdown Service STARTED")
 
-	// Set log output
-	log.SetOutput(logFile)
-
-	log.Println("Cost-Saver Started")
-
+	// Start checking for an idle server
 	checkIdleStatus()
 }

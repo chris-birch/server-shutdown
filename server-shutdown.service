@@ -1,0 +1,12 @@
+[Unit]
+Description=Idle Server Shutdown Service
+
+[Service]
+ExecStart=/usr/local/bin/server-shutdown
+User=root
+Group=root
+UMask=007
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

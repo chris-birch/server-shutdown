@@ -11,7 +11,7 @@ clean:
 	go clean
 	rm -f ./bin
 
-install: build clean
+install:
 	cp ./bin/${BINARY_NAME} /usr/local/bin
 	chown root: /usr/local/bin/${BINARY_NAME}
 	chmod +x /usr/local/bin/${BINARY_NAME}

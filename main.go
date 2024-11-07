@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"regexp"
@@ -13,13 +12,14 @@ import (
 func maxIdleTime() float64 {
 	val, exists := os.LookupEnv("SERVER_IDLE_TIME")
 	if !exists {
-		log.Println("SERVER_IDLE_TIME doesn't exist, using default of 3600s")
+		fmt.Println("SERVER_IDLE_TIME doesn't exist, using default of 3600s")
 		return 3600
 	} else {
 		idleTime, err := strconv.ParseFloat(val, 64)
 
 		if err != nil {
-			log.Fatalln("SERVER_IDLE_TIME must be a number e.g. 3600")
+			fmt.Println("SERVER_IDLE_TIME must be a number e.g. 3600")
+			os.Exit(1)
 		}
 
 		return idleTime
@@ -61,7 +61,7 @@ func checkIdleStatus() {
 	for {
 		select {
 		case <-ticker.C:
-			if userCount() == 0 { // No users logged in
+			if userCount() == 0 { // No users fmtged in
 				idleState <- true
 			} else {
 				idleState <- false
@@ -73,18 +73,18 @@ func checkIdleStatus() {
 
 }
 
-func idleCount(maxIdleTime float64, in <-chan bool) {
+func idleCount(idleTime float64, in <-chan bool) {
 	for {
 		state := <-in //State of idleTimer
 
 		if state {
-			log.Printf("Starting %s idle timer", time.Duration(maxIdleTime*float64(time.Second)))
-			idleTimer := time.AfterFunc(time.Duration(maxIdleTime)*time.Second, shutdown)
+			fmt.Printf("No users are currently logged in. Starting %s idle timer", time.Duration(idleTime*float64(time.Second)))
+			idleTimer := time.AfterFunc(time.Duration(idleTime)*time.Second, shutdown)
 
 			for {
 				state := <-in
 				if !state {
-					log.Println("User logged in, idle timer stopped")
+					fmt.Println("User logged in, idle timer stopped")
 					idleTimer.Stop()
 					break
 				}
@@ -95,7 +95,8 @@ func idleCount(maxIdleTime float64, in <-chan bool) {
 }
 
 func shutdown() {
-	log.Println("Server Shutdown will now shutdown the server")
+	idleTime := maxIdleTime()
+	fmt.Printf("No users have been logged in for %s. Shutting down.", time.Duration(idleTime*float64(time.Second)))
 	cmd := "shutdown -h 1 \"Server Shutdown service will now shutdown the server\""
 	_, err := exec.Command("bash", "-c", cmd).Output()
 
@@ -105,7 +106,7 @@ func shutdown() {
 }
 
 func main() {
-	log.Println("Server Shutdown Service STARTED")
+	fmt.Println("Server Shutdown Service STARTED")
 
 	// Start checking for an idle server
 	checkIdleStatus()

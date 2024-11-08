@@ -55,13 +55,13 @@ func checkIdleStatus() {
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 
-	idleState := make(chan bool)     // create timer channel
+	idleState := make(chan bool)     // Create a timer channel
 	go idleCount(maxTime, idleState) // Start idle count routine
 
 	for {
 		select {
 		case <-ticker.C:
-			if userCount() == 0 { // No users fmtged in
+			if userCount() == 0 {
 				idleState <- true
 			} else {
 				idleState <- false
@@ -78,7 +78,7 @@ func idleCount(idleTime float64, in <-chan bool) {
 		state := <-in //State of idleTimer
 
 		if state {
-			fmt.Printf("No users are currently logged in. Starting %s idle timer", time.Duration(idleTime*float64(time.Second)))
+			fmt.Printf("No users are currently logged in. Starting %s idle timer\n", time.Duration(idleTime*float64(time.Second)))
 			idleTimer := time.AfterFunc(time.Duration(idleTime)*time.Second, shutdown)
 
 			for {
@@ -96,7 +96,7 @@ func idleCount(idleTime float64, in <-chan bool) {
 
 func shutdown() {
 	idleTime := maxIdleTime()
-	fmt.Printf("No users have been logged in for %s. Shutting down.", time.Duration(idleTime*float64(time.Second)))
+	fmt.Printf("No users have been logged in for %s. Shutting down.\n", time.Duration(idleTime*float64(time.Second)))
 	cmd := "shutdown -h 1 \"Server Shutdown service will now shutdown the server\""
 	_, err := exec.Command("bash", "-c", cmd).Output()
 

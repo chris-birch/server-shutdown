@@ -9,7 +9,7 @@ run: build
 
 clean:
 	go clean
-	rm -f ./bin
+	rm -r ./bin
 
 install:
 	cp ./bin/${BINARY_NAME} /usr/local/bin
